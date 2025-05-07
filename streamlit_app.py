@@ -7,19 +7,20 @@ st.title("Welcome to Alkelink")
 st.markdown("**Please login through Google mail:**")
 
 # --- Require login ---
-if not st.user.is_logged_in:
+if not hasattr(st, "user") or not st.user.get("is_logged_in", False):
     st.button("🔐 Log in with Google", on_click=st.login)
     st.stop()
 
 # --- Restrict access to authorized emails ---
-ALLOWED_USERS = ["you@gmail.com", "yourfriend@gmail.com"]
-if st.user.email not in ALLOWED_USERS:
+ALLOWED_USERS = ["dsdsitompul@gmail.com", "daniel_sitompul@berkeley.edu", "rashmi.varma@berkeley.edu"]
+user_email = st.user.get("email", "")
+if user_email not in ALLOWED_USERS:
     st.error("🚫 Access denied. You are not authorized to view this dashboard.")
     st.stop()
 
 # --- Optional logout + sidebar info ---
 st.sidebar.button("🚪 Log out", on_click=st.logout)
-st.sidebar.markdown(f"👤 Logged in as: **{st.user.email}**")
+st.sidebar.markdown(f"👤 Logged in as: **{user_email}**")
 
 # ========== END LOGIN BLOCK ==========
 
@@ -57,25 +58,24 @@ if len(date_range) == 2:
         (filtered_df["Date"] >= start) & (filtered_df["Date"] <= end)
     ]
 
-#  Display metrics
+# Display metrics
 st.metric("Total Transactions", len(filtered_df))
 st.write(f"Showing **{len(filtered_df)}** records")
 st.dataframe(filtered_df)
 
-## Graph 1: Daily tansaction trend
+# Graph 1: Daily transaction trend
 st.subheader("📈 Transactions per Day")
 chart_df = filtered_df.groupby("Date").size().reset_index(name="Transactions")
-    
-# Sort by date to make chart correct
+
+# Sort by date
 chart_df["Date"] = pd.to_datetime(chart_df["Date"], errors="coerce")
 chart_df = chart_df.sort_values("Date")
 st.bar_chart(chart_df.set_index("Date"))
 
-
-## Graph 2: Daily transactions per medication
+# Graph 2: Daily transactions per medication
 st.subheader("📈 Daily Transactions per Medication")
 
-# Make sure Date is datetime
+# Convert Date to datetime
 filtered_df["Date"] = pd.to_datetime(filtered_df["Date"], errors="coerce")
 
 # Group by Date and Medication
@@ -87,12 +87,9 @@ line_df = (
 
 # Pivot: rows = dates, columns = medication names
 pivot_df = line_df.pivot(index="Date", columns="Medication_Name", values="Transactions").fillna(0)
-
-# Sort by date
 pivot_df = pivot_df.sort_index()
 
 # Plot line chart
 st.line_chart(pivot_df)
-
 
 # ========== END DASHBOARD BLOCK ==========
