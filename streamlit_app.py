@@ -1,6 +1,28 @@
 import streamlit as st
 import pandas as pd
 
+# ========== START LOGIN BLOCK ==========
+
+st.title("Welcome to Alkelink")
+st.markdown("**Please login through Google mail:**")
+
+# --- Require login ---
+if not st.user.is_logged_in:
+    st.button("🔐 Log in with Google", on_click=st.login)
+    st.stop()
+
+# --- Restrict access to authorized emails ---
+ALLOWED_USERS = ["you@gmail.com", "yourfriend@gmail.com"]
+if st.user.email not in ALLOWED_USERS:
+    st.error("🚫 Access denied. You are not authorized to view this dashboard.")
+    st.stop()
+
+# --- Optional logout + sidebar info ---
+st.sidebar.button("🚪 Log out", on_click=st.logout)
+st.sidebar.markdown(f"👤 Logged in as: **{st.user.email}**")
+
+# ========== END LOGIN BLOCK ==========
+
 
 # ========== START DASHBOARD BLOCK ==========
 
