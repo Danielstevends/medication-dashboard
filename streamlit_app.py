@@ -1,6 +1,9 @@
 import streamlit as st
 import pandas as pd
 
+
+# ========== START DASHBOARD BLOCK ==========
+
 # Load your dataset from the data folder
 df = pd.read_csv("data/historical_medication_transactions_2025.csv")
 
@@ -68,3 +71,6 @@ pivot_df = pivot_df.sort_index()
 
 # Plot line chart
 st.line_chart(pivot_df)
+
+
+# ========== END DASHBOARD BLOCK ==========
