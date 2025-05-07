@@ -1,40 +1,36 @@
 import streamlit as st
 import pandas as pd
 
-st.set_page_config(page_title="Alkelink Dashboard", layout="wide")
+# --- Initialize session state ---
+if "authenticated" not in st.session_state:
+    st.session_state.authenticated = False
+if "user" not in st.session_state:
+    st.session_state.user = ""
 
-# Hardcoded users
+# --- Hardcoded credentials ---
 VALID_USERS = {
     "daniel-sitompul": "Danieliscool123!",
     "rashmi-varma": "Danieliscool123!"
 }
 
-# Initialize session state
-if "authenticated" not in st.session_state:
-    st.session_state.authenticated = False
-
-# Login form
+# --- If not authenticated, show login ---
 if not st.session_state.authenticated:
     st.title("🔐 Login to Alkelink Dashboard")
     username = st.text_input("Username")
     password = st.text_input("Password", type="password")
-
     if st.button("Log in"):
         if username in VALID_USERS and VALID_USERS[username] == password:
             st.session_state.authenticated = True
             st.session_state.user = username
-            st.success(f"Welcome, {username}!")
-            st.experimental_rerun()
         else:
             st.error("❌ Invalid username or password")
+    st.stop()  # prevent continuing to dashboard if not authenticated
 
-    st.stop()  # Stop here if not authenticated
+# --- Show dashboard if authenticated ---
+st.success(f"Welcome, {st.session_state.user}!")
 
-# If authenticated, show the dashboard
-st.sidebar.markdown(f"👤 Logged in as: **{st.session_state.user}**")
-st.sidebar.button("🚪 Log out", on_click=lambda: st.session_state.update({"authenticated": False}))
+# ========== DASHBOARD BLOCK ==========
 
-# ======== DASHBOARD =========
 df = pd.read_csv("data/historical_medication_transactions_2025.csv")
 
 st.title("💊 Medication Transactions Dashboard")
@@ -57,16 +53,21 @@ st.metric("Total Transactions", len(filtered_df))
 st.write(f"Showing **{len(filtered_df)}** records")
 st.dataframe(filtered_df)
 
-# Graph 1: Daily transactions
+# 📈 Transactions per Day
 st.subheader("📈 Transactions per Day")
 chart_df = filtered_df.groupby("Date").size().reset_index(name="Transactions")
 chart_df["Date"] = pd.to_datetime(chart_df["Date"], errors="coerce")
 chart_df = chart_df.sort_values("Date")
 st.bar_chart(chart_df.set_index("Date"))
 
-# Graph 2: Daily transactions per medication
+# 📈 Transactions per Medication
 st.subheader("📈 Daily Transactions per Medication")
 filtered_df["Date"] = pd.to_datetime(filtered_df["Date"], errors="coerce")
-line_df = filtered_df.groupby(["Date", "Medication_Name"]).size().reset_index(name="Transactions")
-pivot_df = line_df.pivot(index="Date", columns="Medication_Name", values="Transactions").fillna(0).sort_index()
+line_df = (
+    filtered_df.groupby(["Date", "Medication_Name"])
+    .size()
+    .reset_index(name="Transactions")
+)
+pivot_df = line_df.pivot(index="Date", columns="Medication_Name", values="Transactions").fillna(0)
+pivot_df = pivot_df.sort_index()
 st.line_chart(pivot_df)
