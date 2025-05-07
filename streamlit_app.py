@@ -24,6 +24,7 @@ if not st.session_state.authenticated:
             st.session_state.authenticated = True
             st.session_state.user = username
             st.success(f"Welcome, {username}!")
+            st.experimental_rerun()
         else:
             st.error("❌ Invalid username or password")
 
