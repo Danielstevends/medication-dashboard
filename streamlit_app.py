@@ -1,26 +1,41 @@
 import streamlit as st
 import pandas as pd
 
+import streamlit as st
+import pandas as pd
+
 # ========== START LOGIN BLOCK ==========
 
-st.title("Welcome to Alkelink")
-st.markdown("**Please login through Google mail:**")
+# Hardcoded credentials
+USER_CREDENTIALS = {
+    "daniel-sitompul": "Danieliscool123!",
+    "rashmi-varma": "Danieliscool123!"
+}
 
-# --- Require login ---
-if not hasattr(st, "user") or not st.user.get("is_logged_in", False):
-    st.button("🔐 Log in with Google", on_click=st.login)
+# Session state to store login status
+if "logged_in" not in st.session_state:
+    st.session_state.logged_in = False
+    st.session_state.username = ""
+
+if not st.session_state.logged_in:
+    st.title("🔐 Login to Alkelink Dashboard")
+    username = st.text_input("Username")
+    password = st.text_input("Password", type="password")
+    login_button = st.button("Log in")
+
+    if login_button:
+        if username in USER_CREDENTIALS and USER_CREDENTIALS[username] == password:
+            st.session_state.logged_in = True
+            st.session_state.username = username
+            st.success(f"Welcome, {username}!")
+            st.experimental_rerun()
+        else:
+            st.error("❌ Incorrect username or password.")
     st.stop()
 
-# --- Restrict access to authorized emails ---
-ALLOWED_USERS = ["dsdsitompul@gmail.com", "daniel_sitompul@berkeley.edu", "rashmi.varma@berkeley.edu"]
-user_email = st.user.get("email", "")
-if user_email not in ALLOWED_USERS:
-    st.error("🚫 Access denied. You are not authorized to view this dashboard.")
-    st.stop()
-
-# --- Optional logout + sidebar info ---
-st.sidebar.button("🚪 Log out", on_click=st.logout)
-st.sidebar.markdown(f"👤 Logged in as: **{user_email}**")
+# Logout button
+st.sidebar.button("🚪 Log out", on_click=lambda: st.session_state.update({"logged_in": False}))
+st.sidebar.markdown(f"👤 Logged in as: **{st.session_state.username}**")
 
 # ========== END LOGIN BLOCK ==========
 
